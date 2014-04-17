@@ -7,44 +7,41 @@ import java.util.Random;
 
 /**
  * A simple implementation of hash tables.
- *
+ * 
  * @author Samuel A. Rebelsky
  */
 public class HashTable<K, V>
-    implements Iterable<V>
+    implements
+      Iterable<V>
 {
   // +-------+-----------------------------------------------------------
   // | Notes |
   // +-------+
 
   /*
-      We use linear probing to handle collisions.  (Well, we *will* use
-      linear probing, once the table is finished.)
-
-      We expand the hash table when the load factor is greater than
-      LOAD_FACTOR (see constants below).
-
-      Since some combinations of data and hash function may lead to
-      a situation in which we get a surprising relationship between values
-      (e.g., all the hash values are 0 mod 32), when expanding the hash
-      table, we incorporate a random number.  (Is this likely to make a
-      big difference?  Who knows.  But it's likely to be fun.)
-
-      For experimentation and such, we allow the client to supply a
-      Reporter that is used to report behind-the-scenes work, such as
-      calls to expand the table.
-
-      Bugs to squash.
-        [ ] Doesn't check for repeated keys in set.
-        [ ] Doesn't check for matching key in get.
-        [ ] Doesn't handle collisions.
-        [ ] The `expand` method is not implemented.
-        [ ] The `remove` method is not implemented.
-
-      Features to add.
-        [ ] A real implementation of containsKey.
-        [ ] An iterator for the values.
-        [ ] An iterator for the keys.
+   * We use linear probing to handle collisions. (Well, we *will* use linear
+   * probing, once the table is finished.)
+   * 
+   * We expand the hash table when the load factor is greater than LOAD_FACTOR
+   * (see constants below).
+   * 
+   * Since some combinations of data and hash function may lead to a situation
+   * in which we get a surprising relationship between values (e.g., all the
+   * hash values are 0 mod 32), when expanding the hash table, we incorporate a
+   * random number. (Is this likely to make a big difference? Who knows. But
+   * it's likely to be fun.)
+   * 
+   * For experimentation and such, we allow the client to supply a Reporter that
+   * is used to report behind-the-scenes work, such as calls to expand the
+   * table.
+   * 
+   * Bugs to squash. [ ] Doesn't check for repeated keys in set. [ ] Doesn't
+   * check for matching key in get. [ ] Doesn't handle collisions. [ ] The
+   * `expand` method is not implemented. [ ] The `remove` method is not
+   * implemented.
+   * 
+   * Features to add. [ ] A real implementation of containsKey. [ ] An iterator
+   * for the values. [ ] An iterator for the keys.
    */
 
   // +-----------+-------------------------------------------------------
@@ -57,31 +54,29 @@ public class HashTable<K, V>
   static final double LOAD_FACTOR = 0.5;
 
   /**
-   * The offset to use in linear probes.  (We choose a prime because
-   * that helps ensure that we cover all of the spaces.)
+   * The offset to use in linear probes. (We choose a prime because that helps
+   * ensure that we cover all of the spaces.)
    */
-  static final double PROBE_OFFSET = 17;
+  static final int PROBE_OFFSET = 17;
 
   // +--------+----------------------------------------------------------
   // | Fields |
   // +--------+
 
   /**
-   * The number of values currently stored in the hash table.
-   * We use this to determine when to expand the hash table.
+   * The number of values currently stored in the hash table. We use this to
+   * determine when to expand the hash table.
    */
   int size = 0;
 
   /**
-   * The array that we use to store the key/value pairs.  (We
-   * use an array, rather than a vector, because we want to
-   * control expansion.)
+   * The array that we use to store the key/value pairs. (We use an array,
+   * rather than a vector, because we want to control expansion.)
    */
   Object[] pairs;
 
   /**
-   * An optional reporter to let us observe what the hash table
-   * is doing.
+   * An optional reporter to let us observe what the hash table is doing.
    */
   Reporter reporter;
 
@@ -91,8 +86,8 @@ public class HashTable<K, V>
   boolean REPORT_BASIC_CALLS = false;
 
   /**
-   * Our helpful random number generator, used primarily when 
-   * expanding the size of the table..
+   * Our helpful random number generator, used primarily when expanding the size
+   * of the table..
    */
   Random rand;
 
@@ -111,8 +106,7 @@ public class HashTable<K, V>
   } // HashTable
 
   /**
-   * Create a new hash table that reports activities using a
-   * reporter.
+   * Create a new hash table that reports activities using a reporter.
    */
   public HashTable(Reporter reporter)
   {
@@ -173,9 +167,10 @@ public class HashTable<K, V>
     throws Exception
   {
     int index = find(key);
+
     @SuppressWarnings("unchecked")
     KVPair pair = (KVPair) pairs[index];
-    if (pair == null)
+    if ((pair == null) || (pair.key != key))
       {
         if (REPORT_BASIC_CALLS && (reporter != null))
           {
@@ -234,6 +229,9 @@ public class HashTable<K, V>
       } // if there are too many entries
     // Find out where the key belongs and put the pair there.
     int index = find(key);
+    while (this.pairs[index] != null)
+      index++;
+
     this.pairs[index] = new KVPair(key, value);
     // Report activity, if appropriate
     if (REPORT_BASIC_CALLS && (reporter != null))
@@ -249,7 +247,7 @@ public class HashTable<K, V>
   // +------+
 
   /**
-   * Should we report basic calls?  Intended mostly for tracing.
+   * Should we report basic calls? Intended mostly for tracing.
    */
   public void reportBasicCalls(boolean report)
   {
@@ -305,19 +303,27 @@ public class HashTable<K, V>
         reporter.report("Expanding to " + newSize + " elements.");
       } // if reporter != null
     // Create a new table of that size.
-    //   STUB
+    // STUB
     // Move all the values from the old table to their appropriate
     // location in the new table.
-    //   STUB
+    // STUB
   } // expand()
 
   /**
-   * Find the index of the entry with a given key.  If there is no such
-   * entry, return the index of an entry we can use to store that key.
+   * Find the index of the entry with a given key. If there is no such entry,
+   * return the index of an entry we can use to store that key.
    */
   int find(K key)
   {
-    return Math.abs(key.hashCode()) % this.pairs.length;
+    int num = Math.abs(key.hashCode()) % this.pairs.length;
+    KVPair pair = (KVPair) pairs[num];
+    
+    while ((pair != null) && (pair.key != key))
+      {
+        num = (num + PROBE_OFFSET) % this.pairs.length;
+        pair = (KVPair) pairs[num];
+      } // while
+    return num;
   } // find(K)
 
   // +---------------+---------------------------------------------------

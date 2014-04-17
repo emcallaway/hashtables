@@ -20,7 +20,16 @@ public class HashTableExpt
   public static void repeatedSetExpt(PrintWriter pen,
                                      HashTable<String, String> dict)
   {
-    // STUB
+    dict.reportBasicCalls(true);
+    dict.set("alpha", "alpha");
+    dict.dump(pen);
+    dict.set("beta", "beta");
+    dict.dump(pen);
+    dict.set("bravo", "bravo");
+    dict.dump(pen);
+    dict.set("beta", "bravo");
+    dict.dump(pen);
+    dict.reportBasicCalls(false);
   } // repeatedSetExpt(PrintWriter, HashTable)
 
   /**
@@ -74,6 +83,7 @@ public class HashTableExpt
                     dict.dump(pen);
                     return;
                   } // if we didn't get the expected value.
+                pen.println("Passed? " + i);
               }
             catch (Exception e)
               {
@@ -120,9 +130,9 @@ public class HashTableExpt
     dict.reportBasicCalls(false);
 
     // Conduct some of the experiments
-    repeatedSetExpt(pen, dict);
-    // matchingKeysExpt(pen, dict);
-    // setExpt(pen, dict);
+ //  repeatedSetExpt(pen, dict);
+  //   matchingKeysExpt(pen, dict);
+     setExpt(pen, dict);
     // removeExpt(pen, dict);
   } // main(String[])
 
